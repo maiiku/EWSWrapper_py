@@ -1,3 +1,22 @@
+'''
+/* EWSWrapper_py
+ * ====================================================
+ * @author Michal Korzeniowski <mko_san@lafiel.net>
+ * @version 0.1
+ * @date 10-2011
+ * @website http://ewswrapper.lafiel.net/
+ * ====================================================
+ * Desciption
+ * Provides API wrapper for easy usage of Microsoft 
+ * Exchange Web Services. EWSWrapper utilzes some
+ * code written by Erik Cederstrand <erik@cederstrand.dk>
+ * - Calendar events: add, update, delete, list
+ * - Taks	    : add, update, delete, list
+ * - Messages	    : no support as of yet
+ * - Folders	    : list
+ * 
+ * ==================================================*/
+'''
 from suds import WebFault
 from suds.client import Client
 from suds.sax.element import Element

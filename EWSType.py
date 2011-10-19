@@ -1,3 +1,18 @@
+'''
+/* EWSWrapper_py
+ * ====================================================
+ * @author Michal Korzeniowski <mko_san@lafiel.net>
+ * @version 0.1
+ * @date 10-2011
+ * @website http://ewswrapper.lafiel.net/
+ * ====================================================
+ * Desciption
+ * Provides enumerable types from Exchange Web Services
+ * for EWSWrapper. Accessible from EWSWrapper under
+ * self.types
+ * 
+ * ==================================================*/
+'''
 class EWSType:
 
 

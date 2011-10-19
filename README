@@ -1,0 +1,31 @@
+'''
+/* EWSWrapper_py README file
+ * ====================================================
+ * @author Michal Korzeniowski <mko_san@lafiel.net>
+ * @version 0.1
+ * @date 09-2011
+ * @website http://ewswrapper.lafiel.net/
+ * ==================================================*/
+'''
+
+ EWSWrapper provides wrapper functions for easy usage of 
+ Microsoft Exchange Web Services. EWSWrapper utilzes some 
+ code written by Erik Cederstrand <erik@cederstrand.dk>
+ 
+ Currently EWSWrapper provides following functionality:
+ - Operations on Calendar Events: 
+	- add, 
+	- update, 
+	- delete, 
+	- list
+ - Operations on Tasks:
+ 	- add,
+	- update, 
+	- delete, 
+	- list
+- Operations of Folders:
+	- list
+
+Documentaion can be found @ http://ewswrapper.lafiel.net/ 
+
+Please see test.py for example usages of EWSWrapper.
