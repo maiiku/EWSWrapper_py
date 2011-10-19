@@ -1,0 +1,16 @@
+#python specific
+*.pyc
+
+## generic files to ignore
+*~
+*.lock
+*.DS_Store
+*.swp
+*.out
+*.wpr
+*.wpu
+*.xpyqt
+bu
+src
+EWSType
+test2.py
