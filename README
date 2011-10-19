@@ -29,3 +29,43 @@
 Documentaion can be found @ http://ewswrapper.lafiel.net/ 
 
 Please see test.py for example usages of EWSWrapper.
+
+
+Note:
+For suds to work with EWS you may need to patch file caching system in SUDS.
+Big thanks go to Sean DiZazzo <half.italian@gmail.com> for providing the 
+necessary changes:
+
+--- suds/cache.py	2011-05-31 09:57:26.000000000 -0700
+***************
+*** 191,197 ****
+          try:
+              fn = self.__fn(id)
+              f = self.open(fn, 'w')
+!             f.write(bfr)
+              f.close()
+              return bfr
+          except:
+--- 191,197 ----
+          try:
+              fn = self.__fn(id)
+              f = self.open(fn, 'w')
+!             f.write(str(bfr))          # Cast the bfr object to a string
+              f.close()
+              return bfr
+          except:
+
+--- suds/reader.py	2011-05-31 09:57:26.000000000 -0700
+***************
+*** 78,83 ****
+--- 78,86 ----
+          if d is None:
+              d = self.download(url)
+              cache.put(id, d)
++         else:                                # add these three lines.
++             sax = Parser()
++             d = sax.parse(string=d)
+          self.plugins.document.parsed(url=url, document=d.root())
+          return d
+      
+***************
