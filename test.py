@@ -28,14 +28,12 @@
 from EWSWrapper import EWSWrapper, EWSDateTime
 
 #user, password & host setup
-datadir = 'wsdl'
 domain  = 'red002.mail.emea.microsoftonline.com'
 user    = 'test@test.com'
 pw      = 'password'
 
 #create EWSWrapper object
-exchange = EWSWrapper(domain=domain, username=user, password=pw, datadir=datadir, authtype=None, debug=True)
-ews = exchange.wrapper
+ews = EWSWrapper(host=domain, username=user, password=pw, debug=True).wrapper
 
 #on_behalf account address
 account = 'test@test.com'
@@ -103,7 +101,7 @@ elif to_do == 'task_delete':
         print i
 elif to_do == 'task_list':
     items = ews.listTask(on_behalf=account, \
-                         end=EWSDateTime(2011, 10, 18, 13, 37, 0)))
+                         end=EWSDateTime(2011, 10, 18, 13, 37, 0))
     print '\nreturned items:'
     for i in items:
         print i
