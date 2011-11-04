@@ -43,18 +43,18 @@ class EWSWrapper:
     TimeZoneName    = "(GMT+01:00) Warsaw"	
 
 
-    def __init__(self, host, username, password, datadir='wsdl', protocol='https', \
+    def __init__(self, domain, username, password, datadir='wsdl', protocol='https', \
             authtype=None, debug=False, timeArr=[]):
 
-        self.host = host
+        self.domain = domain
         self.protocol = protocol
-        self.urlprefix = '%s://%s/EWS' % (protocol, host)
+        self.urlprefix = '%s://%s/EWS' % (protocol, domain)
         self.wsdl = '%s/Services.wsdl' % self.urlprefix
 
         self.credentials = self.Credentials(username, password)
         self.transport = self.Transport(self, authtype)
 
-        #self.localdir = '%s/%s' % (datadir, host)
+        #self.localdir = '%s/%s' % (datadir, domain)
         
         # Download and fix up the WSDL
         #localwsdl = 'file://%s' % self.setup()
@@ -89,8 +89,8 @@ class EWSWrapper:
             the_cache = cache.FileCache(location=cachepath, days=0)
             self.client = Client(url=localwsdl, transport=auth, cache=the_cache)
         else:
-	    the_cache = cache.FileCache(location=cachepath, days=0)
-            self.client = Client(url=localwsdl, transport=auth, cache=the_cache)
+            self.client = Client(url=localwsdl, transport=auth, cachingpolicy=1)
+            self.client.options.cache.setduration(weeks=1)
             
         self.version = self.Version(self)
         self.wrapper = self.Wrapper(self)
@@ -253,7 +253,7 @@ class EWSWrapper:
     
                 passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
                 cred = self.exchange.credentials
-                passman.add_password(None, self.exchange.host, cred.username, \
+                passman.add_password(None, self.exchange.domain, cred.username, \
                     cred.password)
     
                 # Create authentication handlers
@@ -968,7 +968,7 @@ class EWSWrapper:
 
             return status
 
-        def listItems(self, type, id=None, start=None, end=None, on_behalf=None, shape='ID_ONLY', categories=[], additional=[]):
+        def listItems(self, type, id=None, start=None, end=None, on_behalf=None, shape='ID_ONLY', categories=[]):
             '''======================================
 	    // List Items
 	    // Note: currenttly only Taska are 
@@ -986,33 +986,16 @@ class EWSWrapper:
     
 	    if(id):
 		getitem = Element('m:GetItem')
+	
 		itemshape = Element('m:ItemShape')
 		baseshape = Element('t:BaseShape').setText(getattr(self.types.EWSType_DefaultShapeNamesType, shape))
 		itemshape.append(baseshape)
-		
-		if additional:
-		    additionalproperties = Element('t:AdditionalProperties')
-		    for URI in additional:
-			fielduri = Element('t:FieldURI')
-			fielduri.set('FieldURI', URI)
-			additionalproperties.append(fielduri)
-			
-		    itemshape.append(additionalproperties)
-			
 		getitem.append(itemshape)
 		
-		if isinstance(id, list):
-		    for sngle in id:
-			itemid = Element('t:ItemId')
-			itemid.set('Id', sngle)
-			itemids = Element('m:ItemIds')
-			itemids.append(itemid)			
-		
-		else:
-		    itemid = Element('t:ItemId')
-		    itemid.set('Id', id)
-		    itemids = Element('m:ItemIds')
-		    itemids.append(itemid)
+		itemid = Element('t:ItemId')
+		itemid.set('Id', id)
+		itemids = Element('m:ItemIds')
+		itemids.append(itemid)
 		getitem.append(itemids)
 	
 		xml = self.exchange.transport.wrap(getitem)
@@ -1060,21 +1043,14 @@ class EWSWrapper:
 		itemshape = Element('m:ItemShape')
 		baseshape = Element('t:BaseShape').setText(getattr(self.types.EWSType_DefaultShapeNamesType, shape))
 		itemshape.append(baseshape)
-		additionalproperties = None
-		
-		# additional properties
 		if categories:
 		    additionalproperties = Element('t:AdditionalProperties')
 		    fielduri = Element('t:FieldURI')
 		    fielduri.set('FieldURI', 'item:Categories')
 		    additionalproperties.append(fielduri)
-
-		#append all additional properties, if eny
-		if additionalproperties:
 		    itemshape.append(additionalproperties)
 		finditem.append(itemshape)
-		    
-		#type-sepcific options
+		
 		if(type == 'CALENDAR'):
 		    if start or end:
 			calendarview = Element('m:CalendarView')
@@ -1083,7 +1059,6 @@ class EWSWrapper:
 		    if end:   
 			calendarview.set('EndDate', end.ewsformat())
 		    finditem.append(calendarview)
-			
 		elif(type == 'TASKS'):
 		    if start or end:
 			res = Element('m:Restriction')
@@ -1154,20 +1129,6 @@ class EWSWrapper:
 		else:
 		    # Only one item returned
 		    fullitems = [msg.RootFolder.Items].pop()
-	
-		#if we have addtional proerties to fetch do so
-
-		#get ids from response
-		ids = self.getids(fullitems, False)
-		#call self with ids and required props
-		if type=="CALENDAR":
-		    additional.append("calendar:RequiredAttendees")
-		    extended_items = self.listItems(type="CALENDAR", id=ids, additional=additional)
-		    extended_add = {}
-		    for i in range(0, len(extended_items)):
-			extended_add[extended_items[i].ItemId._Id] = extended_items[i].RequiredAttendees
-		    for i in range(0,len(fullitems)):
-			fullitems[i].RequiredAttendees = extended_add.get(fullitems[i].ItemId._Id)
 	
 		if not categories:
 		    return fullitems
@@ -1256,16 +1217,13 @@ class EWSWrapper:
 
 
 	
-        def getids(self, items, include_change_key=True):
+        def getids(self, items):
             '''Takes a list of items with full or partial properties as
             produced from getitems() and returns a list of (id, changekey)
             tuples.'''
             idlist = []
             for item in [i.ItemId for i in items]:
-		if(include_change_key):
-		    idlist.append((item._Id, item._ChangeKey))
-		else:
-		    idlist.append(item._Id)
+                idlist.append((item._Id, item._ChangeKey))
             return idlist
 	
         
