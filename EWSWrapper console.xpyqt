@@ -1,0 +1,32 @@
+<!DOCTYPE XUPProject>
+<!--
+###########################################################################################
+##		Created using Monkey Studio IDE v1.8.4.0 (1.8.4.0)
+##
+##	Author    : mko_san@lafile.net
+##	Project   : EWSWrapper console
+##	FileName  : EWSWrapper console.xpythonqt
+##	Date      : 2011-09-30T09:49:30
+##	License   : BSD
+##	Comment   : EWSWrapper console
+##	Home Page   : http://ewswrapper.lafiel.net
+##
+##	This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+##	WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+##
+###########################################################################################
+-->
+<project version="1.1.0" name="EWSWrapper console">
+    <scope nested="false" name="XUPProjectSettings">
+        <variable operator="=" name="EDITOR" multiline="false">
+            <value content="PyQt"/>
+        </variable>
+    </scope>
+    <variable operator="=" name="PYTHON_FILES" multiline="true">
+        <file content="src/main.py"/>
+        <file content="EWSWrapper.py"/>
+        <file content="demo.py"/>
+        <file content="NTLMSoapClient.py"/>
+        <file content="Exchange.py"/>
+    </variable>
+</project>
