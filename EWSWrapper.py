@@ -61,7 +61,11 @@ class EWSWrapper:
         basepath = ''
         basepath = path.normpath(path.dirname( path.realpath( __file__ )))
         self.basepath = basepath.replace('\\', '/') + '/' + datadir
-        localwsdl = 'file:///%s/services.wsdl' % (self.basepath)
+        if self.basepath.startswith('/'):
+            tmp_basepath = self.basepath[1:]
+        else:
+            tmp_basepath = self.basepath	
+        localwsdl = 'file:///%s/services.wsdl' % (tmp_basepath)
         #cache path
         cachepath = basepath.replace('\\', '/') + '/suds_cache'
         
@@ -1153,7 +1157,7 @@ class EWSWrapper:
 		    fullitems = msg.RootFolder.Items[0]
 		else:
 		    # Only one item returned
-		    fullitems = [msg.RootFolder.Items].pop()
+		    fullitems = msg.RootFolder.Items
 	
 		#if we have addtional proerties to fetch do so
 
@@ -1261,11 +1265,18 @@ class EWSWrapper:
             produced from getitems() and returns a list of (id, changekey)
             tuples.'''
             idlist = []
-            for item in [i.ItemId for i in items]:
-		if(include_change_key):
-		    idlist.append((item._Id, item._ChangeKey))
-		else:
-		    idlist.append(item._Id)
+	    if len(items) > 1:
+		for item in [i.ItemId for i in items]:
+		    if(include_change_key):
+			idlist.append((item._Id, item._ChangeKey))
+		    else:
+			idlist.append(item._Id)
+	    else:
+		for item in [i.ItemId for i in [j[1] for j in items]]:
+		    if(include_change_key):
+			idlist.append((item._Id, item._ChangeKey))
+		    else:
+			idlist.append(item._Id)
             return idlist
 	
         
