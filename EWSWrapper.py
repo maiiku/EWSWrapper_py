@@ -1169,7 +1169,10 @@ class EWSWrapper:
 		    extended_items = self.listItems(type="CALENDAR", id=ids, additional=additional)
 		    extended_add = {}
 		    for i in range(0, len(extended_items)):
-			extended_add[extended_items[i].ItemId._Id] = extended_items[i].RequiredAttendees
+			if hasattr(extended_items[i], 'RequiredAttendees'):
+			    extended_add[extended_items[i].ItemId._Id] = extended_items[i].RequiredAttendees
+			else:
+			    extended_add[extended_items[i].ItemId._Id] = []
 		    for i in range(0,len(fullitems)):
 			fullitems[i].RequiredAttendees = extended_add.get(fullitems[i].ItemId._Id)
 	
