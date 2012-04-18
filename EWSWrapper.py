@@ -2,18 +2,18 @@
 /* EWSWrapper_py
  * ====================================================
  * @author Michal Korzeniowski <mko_san@lafiel.net>
- * @version 0.1
- * @date 10-2011
+ * @version 0.2
+ * @date 04-2012
  * @website http://ewswrapper.lafiel.net/
  * ====================================================
  * Desciption
  * Provides API wrapper for easy usage of Microsoft 
  * Exchange Web Services. EWSWrapper utilzes some
  * code written by Erik Cederstrand <erik@cederstrand.dk>
- * - Calendar events: add, update, delete, list
+ * - Calendar events: add, update, delete, list, synch
  * - Taks	    : add, update, delete, list
  * - Messages	    : no support as of yet
- * - Folders	    : list
+ * - Folders	    : list, synch
  * 
  * ==================================================*/
 '''
@@ -87,7 +87,7 @@ class EWSWrapper:
             auth = HttpAuthenticated(username=username, password=password)
         else:
             raise Exception('Auth type not supported by Client(): %s' % authtype)
-        debug = True
+
         if debug:
             logging.basicConfig(level=logging.INFO, filename='/var/log/ews_debug.log',
                     format='%(asctime)s %(levelname)s: %(message)s',
@@ -402,13 +402,15 @@ class EWSWrapper:
             '''======================================
             // Synchronize Calendar Events
             //======================================
-            /* @param string id 	- item id. takes precendense over timeframe
-            * @param string $onbehalf 	- "on behalf" seneder's email
-            * @param int $shape 	- item shape
-            * 
-            * @return object response
-            */
+             * @param string $onbehalf 	    - "on behalf": item owner email
+             * @param int num_to_synch      - how many items to synch in one go (max 500)
+             * @param string  synch_state   - current synch state, blank on initial synch
+             * @param string $shape	    - detail level (enumarted in DefaultShapeNamesType)
+             * 
+             * @return object response
+             */
             '''
+
             type = 'CALENDAR'
 
             return self.synchFolder(type, on_behalf, num_to_synch, synch_state, shape)
@@ -1398,7 +1400,19 @@ class EWSWrapper:
             return idlist
         
         def synchFolder(self, type, on_behalf=None, num_to_synch=10, synch_state=None, shape='ID_ONLY', additional=[], ignored_items=None):
-            print synch_state
+            '''======================================
+            // Synch Folder - synchronizes given folder
+            //======================================
+            /* @param string type	    - folder type (enumarted in DistinguishedFolderIdNameType)
+             * @param string $onbehalf 	    - "on behalf": item owner email
+             * @param int num_to_synch      - how many items to synch in one go (max 500)
+             * @param string  synch_state   - current synch state, blank on initial synch
+             * @param string $shape	    - detail level (enumarted in DefaultShapeNamesType)
+             * @param string $ignored_items - list of IDs of ignored items (currently not implemented)     
+             * 
+             * @return object response
+             */
+            '''
             synchfolder = Element('m:SyncFolderItems')
 
             itemshape = Element('m:ItemShape')
