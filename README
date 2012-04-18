@@ -71,3 +71,56 @@ necessary changes:
           return d
       
 ***************
+
+
+Another patch needed for SUDS has to do with UTF8 encoding. If soap is 
+returning proper UTF8 suds will most likely fail, so here’s another fix 
+that we came up with after some hours of debbuging:
+
+*** parser.py   2011-11-08 11:44:35.951341300 +0100
+***************
+*** 132,138 ****
+              return handler.nodes[0]
+          if string is not None:
+              source = InputSource(None)
+!             source.setByteStream(StringIO(string.encode('utf8')))
+              #set the encoding if known
+              pos = string.find('encoding="')
+              if(pos>0):
+--- 132,141 ----
+              return handler.nodes[0]
+          if string is not None:
+              source = InputSource(None)
+!             try:
+!                 source.setByteStream(StringIO(string.encode(‘utf8’)))
+!             except UnicodeDecodeError:
+!                 source.setByteStream(StringIO(string))
+              #set the encoding if known
+              pos = string.find('encoding="')
+              if(pos>0):
+	      
+
+Here's yet another fix for suds, this time when you are getting wring DST 
+offset. MSEx will return dates in UTC, and while SUDS will use your 
+local timezone on date conversion it WON'T respect DST offset. Here's a
+fix for that pesky problem:
+
+***\suds\sax\date.py 2011-10-04 07:31:39.000000000 +0200
+***************
+*** 302,313 ****
+--- 302,316 ----
+          """
+          Adjust for TZ offset.
+          """
+          if not hasattr(self, 'offset'):
+              return
+          delta = self.tz.adjustment(self.offset)
++         #check for DST
++         ltime = time.localtime(int(time.mktime(self.datetime.timetuple())))
++         delta += dt.timedelta(hours=ltime.tm_isdst)
+          try:
+              d = ( self.datetime + delta )
+              self.datetime = d
+              self.date = d.date()
+              self.time = d.time()
+          except OverflowError:
