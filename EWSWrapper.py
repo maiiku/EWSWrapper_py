@@ -89,7 +89,7 @@ class EWSWrapper:
             raise Exception('Auth type not supported by Client(): %s' % authtype)
 
         if debug:
-            logging.basicConfig(level=logging.INFO, filename='/var/log/ews_debug.log',
+            logging.basicConfig(level=logging.DEBUG, filename='/var/log/ews_debug.log',
                     format='%(asctime)s %(levelname)s: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
             logging.getLogger('suds.client').setLevel(logging.DEBUG)
@@ -98,7 +98,6 @@ class EWSWrapper:
         else:
             the_cache = cache.FileCache(location=cachepath, days=0)
             self.client = Client(url=localwsdl, transport=auth, cache=the_cache)
-
         self.version = self.Version(self)
         self.wrapper = self.Wrapper(self)
 
@@ -128,7 +127,8 @@ class EWSWrapper:
                 '14': {\
                     '00': ('Exchange2010','Microsoft Exchange Server 2010'),\
                     '01': ('Exchange2010_SP1','Microsoft Exchange Server 2010 SP1'),\
-                    '02': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2') \
+                    '02': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2'),\
+                    '16': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2') \
                     }\
             }
 
@@ -165,14 +165,15 @@ class EWSWrapper:
             shortname = ElementTree.parse(types_xsd).getroot().attrib['version']
 
             # I'm lazy. Just generate enough to get a soap:Header response
-            xml = self.exchange.transport.wrap('<m:FindItem/>', shortname)
+            xml = self.exchange.transport.wrap('<m:FindItem Traversal="Shallow"><m:ItemShape><t:BaseShape>IdOnly</t:BaseShape></m:ItemShape>\
+                                                <m:ParentFolderIds><t:DistinguishedFolderId Id="deleteditems"/></m:ParentFolderIds></m:FindItem>', shortname)
             try:
                 # urllib2 might decide to throw an error on the response. We
                 # don't care, we just want the raw data.
                 response = trans.geturl(url=url, authtype=authtype, data=xml)
             except urllib2.HTTPError as e:
                 response = e.read()
-
+            print response
             soapns = 'http://schemas.xmlsoap.org/soap/envelope/'
             tns = 'http://schemas.microsoft.com/exchange/services/2006/types'
             header = ElementTree.fromstring(response).find('{%s}Header' % soapns)
@@ -247,9 +248,10 @@ class EWSWrapper:
             https = urllib2.HTTPSHandler()
             opener = urllib2.build_opener(https, handler)
             urllib2.install_opener(opener)
-
             # Retrieve the result
-            fp = urllib2.urlopen(url, data)
+            headers = {'Content-Type': 'text/xml; charset=utf-8'}
+            req = urllib2.Request(url, data, headers)
+            fp = urllib2.urlopen(req)
             return fp.read()
 
 
