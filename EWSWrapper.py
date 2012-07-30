@@ -42,6 +42,7 @@ class EWSWrapper:
     StandardOffset  = "P0DT0H0M0.0S"
     StandardTime    = "03:00:00.0000000"
     TimeZoneName    = "(GMT+01:00) Warsaw"
+    TimeZoneId      = "Central European Standard Time"
     #for pagination purposes (search / sync)
 
     def __init__(self, host, username, password, datadir='wsdl', protocol='https', \
@@ -79,6 +80,7 @@ class EWSWrapper:
             self.StandardOffset  = timeArr[StandardOffset] if StandardOffset in timeArr else self.StandardOffset
             self.StandardTime    = timeArr[StandardTime] if StandardTime in timeArr else self.StandardTime
             self.TimeZoneName    = timeArr[TimeZoneName] if TimeZoneName in timeArr else self.TimeZoneName
+            self.TimeZoneId      = timeArr[TimeZoneId] if TimeZoneId in timeArr else self.TimeZoneId
 
         authtype = self.transport.authtype
         if authtype == self.transport.NTLM:
@@ -173,7 +175,7 @@ class EWSWrapper:
                 response = trans.geturl(url=url, authtype=authtype, data=xml)
             except urllib2.HTTPError as e:
                 response = e.read()
-            print response
+            #print response
             soapns = 'http://schemas.xmlsoap.org/soap/envelope/'
             tns = 'http://schemas.microsoft.com/exchange/services/2006/types'
             header = ElementTree.fromstring(response).find('{%s}Header' % soapns)
@@ -190,7 +192,6 @@ class EWSWrapper:
         def __str__(self):
             return '%s.%s.%s.%s (%s)' % (self.majorversion, self.minorversion, \
                                          self.majorbuildnumber, self.minorbuildnumber, self.name) 
-
     class Transport:
         '''Autoconfigures and stores information on the auth type of the
         server.'''
@@ -301,7 +302,23 @@ class EWSWrapper:
             # All auth methods give a 401 error, so the credentials must be
             # wrong
             raise urllib2.HTTPError(url, '401', 'Unauthorized', None, fp)
+        
+        def getTZ(self):
+            # The URL of the EWS service
+            url = '%s/Exchange.asmx' % self.exchange.urlprefix
 
+            # Get the server version from types.xsd. A server response provides
+            # the build numbers.
+            types_xsd = '%s/%s' % (self.exchange.basepath, 'types.xsd')
+            shortname = ElementTree.parse(types_xsd).getroot().attrib['version']
+
+            # generate xml for timezones
+            xml = self.wrap('<m:GetServerTimeZones ReturnFullTimeZoneData="false"></m:GetServerTimeZones>')
+            response = self.geturl(url=url, authtype=self.authtype, data=xml)
+            handle1=open('timezones.xml','w+')
+            handle1.write(response)
+            handle1.close()
+            
         def wrap(self, xml, shortname=None):
             '''Generate the necessary boilerplate XML for a raw SOAP request.
             The XML is specific to the server version.'''
@@ -456,17 +473,25 @@ class EWSWrapper:
 
             # Prepare objects for CalendarItem creation
             calitem = Element('t:CalendarItem')
-            timeZone = Element('t:MeetingTimeZone')
-            timeZone.set('TimeZoneName', self.exchange.TimeZoneName)
-            timeZone.append(Element('t:BaseOffset').setText(self.exchange.BaseOffset))
-            standard = Element('t:Standard')
-            standard.append(Element('t:Offset').setText(self.exchange.StandardOffset))
-            standard.append(Element('t:Time').setText(self.exchange.StandardTime))
-            timeZone.append(standard)
-            daylight = Element('t:Daylight')
-            daylight.append(Element('t:Offset').setText(self.exchange.Offset))
-            daylight.append(Element('t:Time').setText(self.exchange.DaylightTime))
-            timeZone.append(daylight)
+            #if we are running MS EX 2010 or newer use different TZ settings
+            startTZ = None
+            if int(self.exchange.version.majorversion) >= 14:
+                startTZ = Element('t:StartTimeZone')
+                startTZ.set('Id', self.exchange.TimeZoneId)
+                endTZ = Element('t:EndTimeZone')
+                endTZ.set('Id', self.exchange.TimeZoneId)
+            else:
+                timeZone = Element('t:MeetingTimeZone')
+                timeZone.set('TimeZoneName', self.exchange.TimeZoneName)
+                timeZone.append(Element('t:BaseOffset').setText(self.exchange.BaseOffset))
+                standard = Element('t:Standard')
+                standard.append(Element('t:Offset').setText(self.exchange.StandardOffset))
+                standard.append(Element('t:Time').setText(self.exchange.StandardTime))
+                timeZone.append(standard)
+                daylight = Element('t:Daylight')
+                daylight.append(Element('t:Offset').setText(self.exchange.Offset))
+                daylight.append(Element('t:Time').setText(self.exchange.DaylightTime))
+                timeZone.append(daylight)
 
             Subject = Element('t:Subject')
             Body = Element('t:Body')
@@ -500,8 +525,12 @@ class EWSWrapper:
                 att.append(mailbox)
                 atts.append(att)
             calitem.append(atts)
-            calitem.append(timeZone)
-
+            #TZ realted stuff
+            if startTZ is not None:
+                calitem.append(startTZ)
+                calitem.append(endTZ)
+            else:
+                calitem.append(timeZone)
 
 
             #add item to items
@@ -640,29 +669,41 @@ class EWSWrapper:
                 updates.append(itemfield)
 
             #timezone
-            itemfield = Element('t:SetItemField')
-            itemfield.append(Element('t:FieldURI'))
-            itemfield.children[0].set('FieldURI', 'calendar:MeetingTimeZone')
-            itemfield.append(Element('t:CalendarItem'))
-            timeZone = Element('t:MeetingTimeZone')
-            timeZone.set('TimeZoneName', self.exchange.TimeZoneName)
-            timeZone.append(Element('t:BaseOffset').setText(self.exchange.BaseOffset))
-            standard = Element('t:Standard')
-            standard.append(Element('t:Offset').setText(self.exchange.StandardOffset))
-            #ryr = Element(t:'RelativeYearlyRecurrence')
-            #ryr.append(t:'DaysOfWeek').setText('DaysOfWeek')
-            #ryr.append(t:'DayOfWeekIndex').setText('First')
-            #ryr.append(t:'Month').setText('November')
-            #standard.append(ryr)
-            standard.append(Element('t:Time').setText(self.exchange.StandardTime))
-            timeZone.append(standard)
-            daylight = Element('t:Daylight')
-            daylight.append(Element('t:Offset').setText(self.exchange.Offset))
-            daylight.append(Element('t:Time').setText(self.exchange.DaylightTime))
-            timeZone.append(daylight)
-            itemfield.children[1].append(timeZone)
-            updates.append(itemfield)
-
+            if int(self.exchange.version.majorversion) >= 14:
+                itemfield = Element('t:SetItemField')
+                itemfield.append(Element('t:FieldURI'))  
+                itemfield.children[0].set('FieldURI', 'calendar:StartTimeZone')
+                itemfield.append(Element('t:CalendarItem'))
+                startTZ = Element('t:StartTimeZone')
+                startTZ.set('Id', self.exchange.TimeZoneId)
+                itemfield.children[1].append(startTZ)
+                updates.append(itemfield)   
+                itemfield = Element('t:SetItemField')
+                itemfield.append(Element('t:FieldURI'))  
+                itemfield.children[0].set('FieldURI', 'calendar:EndTimeZone')
+                itemfield.append(Element('t:CalendarItem'))
+                endTZ = Element('t:EndTimeZone')
+                endTZ.set('Id', self.exchange.TimeZoneId)
+                itemfield.children[1].append(endTZ)
+                updates.append(itemfield)                 
+            else:
+                itemfield = Element('t:SetItemField')
+                itemfield.append(Element('t:FieldURI'))  
+                itemfield.children[0].set('FieldURI', 'calendar:MeetingTimeZone')                
+                timeZone = Element('t:MeetingTimeZone')
+                timeZone.set('TimeZoneName', self.exchange.TimeZoneName)
+                timeZone.append(Element('t:BaseOffset').setText(self.exchange.BaseOffset))
+                standard = Element('t:Standard')
+                standard.append(Element('t:Offset').setText(self.exchange.StandardOffset))
+                standard.append(Element('t:Time').setText(self.exchange.StandardTime))
+                timeZone.append(standard)
+                daylight = Element('t:Daylight')
+                daylight.append(Element('t:Offset').setText(self.exchange.Offset))
+                daylight.append(Element('t:Time').setText(self.exchange.DaylightTime))
+                timeZone.append(daylight)            
+                itemfield.children[1].append(timeZone)
+                updates.append(itemfield)
+                
             itemchange.append(updates)
             itemchanges.append(itemchange)
             updateitem.append(itemchanges)
