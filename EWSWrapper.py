@@ -89,11 +89,17 @@ class EWSWrapper:
             auth = HttpAuthenticated(username=username, password=password)
         else:
             raise Exception('Auth type not supported by Client(): %s' % authtype)
-
+        
+        #import jsonpickle
+        #a = jsonpickle.encode(self)
+        #h = open('/tmp/ews_ser.txt', 'w')
+        #h.write(a)
+        #h.close()
+        
         if debug:
-            logging.basicConfig(level=logging.DEBUG, filename='/var/log/ews_debug.log',
-                    format='%(asctime)s %(levelname)s: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+            #logging.basicConfig(level=logging.DEBUG, filename='/var/log/ews_debug.log',
+            #        format='%(asctime)s %(levelname)s: %(message)s',
+            #        datefmt='%Y-%m-%d %H:%M:%S')
             logging.getLogger('suds.client').setLevel(logging.DEBUG)
             the_cache = cache.FileCache(location=cachepath, days=0)
             self.client = Client(url=localwsdl, transport=auth, cache=the_cache)
@@ -176,6 +182,11 @@ class EWSWrapper:
             except urllib2.HTTPError as e:
                 response = e.read()
             #print response
+            #import jsonpickle
+            #a = jsonpickle.encode(response)
+            #h = open('/tmp/ews_ser.txt', 'w')
+            #h.write(a)
+            #h.close()            
             soapns = 'http://schemas.xmlsoap.org/soap/envelope/'
             tns = 'http://schemas.microsoft.com/exchange/services/2006/types'
             header = ElementTree.fromstring(response).find('{%s}Header' % soapns)
@@ -275,6 +286,7 @@ class EWSWrapper:
             auth_digest.type = self.Digest
 
             https = urllib2.HTTPSHandler()
+            fp = None
             # create and install the opener
             for handler in (auth_basic, auth_NTLM, auth_digest):
                 opener = urllib2.build_opener(https, handler)
