@@ -234,11 +234,9 @@ class EWSWrapper:
 
 
         def _isunauthorized(self, txt):
-            '''Helper funciton. Test if response contains an "Unauthorized"
+            '''Helper function. Test if response contains an "Unauthorized"
             message'''
-            if txt.lower().find('unauthorized') >= 0:
-                return True
-            return False
+            return 'unauthorized' in txt.lower()
 
 
         def geturl(self, url, authtype, data=None):
