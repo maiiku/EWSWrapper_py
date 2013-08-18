@@ -7,14 +7,14 @@
  * @website http://ewswrapper.lafiel.net/
  * ====================================================
  * Desciption
- * Provides API wrapper for easy usage of Microsoft 
+ * Provides API wrapper for easy usage of Microsoft
  * Exchange Web Services. EWSWrapper utilzes some
  * code written by Erik Cederstrand <erik@cederstrand.dk>
  * - Calendar events: add, update, delete, list, synch
  * - Taks	    : add, update, delete, list
  * - Messages	    : no support as of yet
  * - Folders	    : list, synch
- * 
+ *
  * ==================================================*/
 '''
 from suds import WebFault
@@ -66,7 +66,7 @@ class EWSWrapper:
         if self.basepath.startswith('/'):
             tmp_basepath = self.basepath[1:]
         else:
-            tmp_basepath = self.basepath	
+            tmp_basepath = self.basepath
         localwsdl = 'file:///%s/services.wsdl' % (tmp_basepath)
         #cache path
         cachepath = basepath.replace('\\', '/') + '/suds_cache'
@@ -75,7 +75,7 @@ class EWSWrapper:
         #timezone settings
         if timeArr:
             self.BaseOffset	 = timeArr[BaseOffset] if BaseOffset in timeArr else self.BaseOffset
-            self.Offset	         = timeArr[Offset] if Offset in timeArr else self.Offset	
+            self.Offset	         = timeArr[Offset] if Offset in timeArr else self.Offset
             self.DaylightTime    = timeArr[DaylightTime] if DaylightTime in timeArr else self.DaylightTime
             self.StandardOffset  = timeArr[StandardOffset] if StandardOffset in timeArr else self.StandardOffset
             self.StandardTime    = timeArr[StandardTime] if StandardTime in timeArr else self.StandardTime
@@ -89,13 +89,13 @@ class EWSWrapper:
             auth = HttpAuthenticated(username=username, password=password)
         else:
             raise Exception('Auth type not supported by Client(): %s' % authtype)
-        
+
         #import jsonpickle
         #a = jsonpickle.encode(self)
         #h = open('/tmp/ews_ser.txt', 'w')
         #h.write(a)
         #h.close()
-        
+
         if debug:
             #logging.basicConfig(level=logging.DEBUG, filename='/var/log/ews_debug.log',
             #        format='%(asctime)s %(levelname)s: %(message)s',
@@ -120,9 +120,9 @@ class EWSWrapper:
             # Major versions below 8 don't support EWS, so we would never be
             # able to talk to such a server.
 
-            # 'shortname' is what's used in SOAP request headers when talking 
+            # 'shortname' is what's used in SOAP request headers when talking
             # to the server. It comes from types.xsd. 'realshortname' is the
-            # official name corresponding to the version numbers supplied 
+            # official name corresponding to the version numbers supplied
             # in SOAP response headers. For some unknown reason, they may
             # differ.
             versiondict = {\
@@ -133,9 +133,9 @@ class EWSWrapper:
                     '3': ('Exchange2007_SP3','Microsoft Exchange Server 2007 SP3') \
                     },\
                 '14': {\
-                    '00': ('Exchange2010','Microsoft Exchange Server 2010'),\
-                    '01': ('Exchange2010_SP1','Microsoft Exchange Server 2010 SP1'),\
-                    '02': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2'),\
+                    '0': ('Exchange2010','Microsoft Exchange Server 2010'),\
+                    '1': ('Exchange2010_SP1','Microsoft Exchange Server 2010 SP1'),\
+                    '2': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2'),\
                     '16': ('Exchange2010_SP2','Microsoft Exchange Server 2010 SP2') \
                     }\
             }
@@ -153,11 +153,11 @@ class EWSWrapper:
 
 
         def get(self):
-            '''Tries to get ask the server which version it has. We haven't 
+            '''Tries to get ask the server which version it has. We haven't
             set up the Calendar object yet, so just generate an empty request.
-            We only need a response header containing a ServerVersionInfo 
-            element. Apparently, Exchange has no problem supplying one version 
-            in its types.xsd and reporting another in its SOAP headers. Use the 
+            We only need a response header containing a ServerVersionInfo
+            element. Apparently, Exchange has no problem supplying one version
+            in its types.xsd and reporting another in its SOAP headers. Use the
             types.xsd version in SOAP requests.'''
 
             # The URL of the EWS service
@@ -186,7 +186,7 @@ class EWSWrapper:
             #a = jsonpickle.encode(response)
             #h = open('/tmp/ews_ser.txt', 'w')
             #h.write(a)
-            #h.close()            
+            #h.close()
             soapns = 'http://schemas.xmlsoap.org/soap/envelope/'
             tns = 'http://schemas.microsoft.com/exchange/services/2006/types'
             header = ElementTree.fromstring(response).find('{%s}Header' % soapns)
@@ -202,7 +202,7 @@ class EWSWrapper:
 
         def __str__(self):
             return '%s.%s.%s.%s (%s)' % (self.majorversion, self.minorversion, \
-                                         self.majorbuildnumber, self.minorbuildnumber, self.name) 
+                                         self.majorbuildnumber, self.minorbuildnumber, self.name)
     class Transport:
         '''Autoconfigures and stores information on the auth type of the
         server.'''
@@ -312,7 +312,7 @@ class EWSWrapper:
             # All auth methods give a 401 error, so the credentials must be
             # wrong
             raise urllib2.HTTPError(url, '401', 'Unauthorized', None, fp)
-        
+
         def getTZ(self):
             # The URL of the EWS service
             url = '%s/Exchange.asmx' % self.exchange.urlprefix
@@ -328,7 +328,7 @@ class EWSWrapper:
             handle1=open('timezones.xml','w+')
             handle1.write(response)
             handle1.close()
-            
+
         def wrap(self, xml, shortname=None):
             '''Generate the necessary boilerplate XML for a raw SOAP request.
             The XML is specific to the server version.'''
@@ -348,14 +348,14 @@ class EWSWrapper:
 
         def __init__(self, username, password):
             self.username = username
-            self.password = password    
+            self.password = password
 
 
     class Wrapper:
         '''EWSWrapper functions'''
         hasMoreItems    = False
         synchState      = None
-        
+
 
         def __init__(self, exchange):
             # Enums
@@ -410,7 +410,7 @@ class EWSWrapper:
             path.set('DistinguishedPropertySetId', set_id)
             path.set('PropertyId', property_id)
             path.set('PropertyType', property_type)
-            return path	    
+            return path
 
         def listCalendarEvent(self, id=None, start=None, end=None, on_behalf=None, shape='DEFAULT_PROPERTIES', categories=None):
             '''======================================
@@ -420,7 +420,7 @@ class EWSWrapper:
             * @param string $onbehalf 	- "on behalf" seneder's email
             * @param int $start 	- event start timestamp
             * @param int $end		- event end time
-            * 
+            *
             * @return object response
             */
             '''
@@ -435,7 +435,7 @@ class EWSWrapper:
              * @param int num_to_synch      - how many items to synch in one go (max 500)
              * @param string  synch_state   - current synch state, blank on initial synch
              * @param string $shape	    - detail level (enumarted in DefaultShapeNamesType)
-             * 
+             *
              * @return object response
              */
             '''
@@ -450,7 +450,7 @@ class EWSWrapper:
             '''=====================================
             // Add Calendar Event
             //======================================
-            /* @param string $subject  	- event subject 
+            /* @param string $subject  	- event subject
              * @param int $start 	- event start timestamp
              * @param int $end		- event end time
              * @param array $anttendees	- array of email addresses of invited poeople
@@ -460,7 +460,7 @@ class EWSWrapper:
              * @param bool $allday	- is it an all-day event?
              * @param string $bodyType	- body format (Text/HTML)
              * @param string $category	- event actegory
-             * 
+             *
              * @return object response
              *
              '''
@@ -509,7 +509,7 @@ class EWSWrapper:
             cats = None
             if category:
                 cats = Element('t:Categories')
-                if not isinstance(category, list): 
+                if not isinstance(category, list):
                     cats.append(Element('t:String').setText(category))
                 else:
                     for cat in category:
@@ -520,15 +520,15 @@ class EWSWrapper:
             alldayevent =  Element('t:IsAllDayEvent')
             calitem.append(Subject.setText(subject))
             calitem.append(Body.setText(body))
-            calitem.append(cats)	    
+            calitem.append(cats)
             calitem.append(Start.setText(start.ewsformat()))
-            calitem.append(End.setText(end.ewsformat()))	    
+            calitem.append(End.setText(end.ewsformat()))
             calitem.append(alldayevent.setText(int(allday)))
             if location:
                 calitem.append(Location.setText(location))
-            atts = Element('t:RequiredAttendees')	    	
+            atts = Element('t:RequiredAttendees')
             for attendee in attendees:
-                att = Element('t:Attendee')	
+                att = Element('t:Attendee')
                 mailbox = Element('t:Mailbox')
                 emailaddress = Element('t:EmailAddress').setText(attendee)
                 mailbox.append(emailaddress)
@@ -578,7 +578,7 @@ class EWSWrapper:
                 item = msg.Items.CalendarItem.ItemId
                 idlist.extend([item._Id, item._ChangeKey])
 
-            return idlist        
+            return idlist
 
         def editCalendarEvent(self, id, ckey, subject=None, body=None, bodytype="TEXT", \
                               start=None, end=None, location=None, attendees=[], \
@@ -597,7 +597,7 @@ class EWSWrapper:
 	     * @param array $anttendees	- array of email addresses of invited poeople
 	     * @param bool $allday	- is it an all-day event?
 	     * @param string $category	- event actegory
-	     * 
+	     *
 	     * @return object response
 	     */
 	    '''
@@ -611,7 +611,7 @@ class EWSWrapper:
             }
 
             updateitem = Element('m:UpdateItem')
-            updateitem.set('SendMeetingInvitationsOrCancellations', self.types.EWSType_CalendarItemCreateOrDeleteOperationType.SEND_TO_NONE)	    
+            updateitem.set('SendMeetingInvitationsOrCancellations', self.types.EWSType_CalendarItemCreateOrDeleteOperationType.SEND_TO_NONE)
             updateitem.set('MessageDisposition', self.types.EWSType_MessageDispositionType.SAVEONLY)
             updateitem.set('ConflictResolution', self.types.EWSType_ConflictResolutionType.ALWAYSOVERWRITE)
 
@@ -643,7 +643,7 @@ class EWSWrapper:
                 itemfield.append(Element('t:CalendarItem'))
                 reqatts = Element('t:RequiredAttendees')
                 for attendee in attendees:
-                    att = Element('t:Attendee')	
+                    att = Element('t:Attendee')
                     mailbox = Element('t:Mailbox')
                     emailaddress = Element('t:EmailAddress').setText(attendee)
                     mailbox.append(emailaddress)
@@ -659,11 +659,11 @@ class EWSWrapper:
                 itemfield.children[0].set('FieldURI', 'item:Categories')
                 itemfield.append(Element('t:CalendarItem'))
                 categories = Element('t:Categories')
-                if not isinstance(category, list): 
+                if not isinstance(category, list):
                     categories.append(Element('t:String').setText(category))
                 else:
                     for cat in category:
-                        categories.append(Element('t:String').setText(cat))               
+                        categories.append(Element('t:String').setText(cat))
                 itemfield.children[1].append(categories)
                 updates.append(itemfield)
 
@@ -681,25 +681,25 @@ class EWSWrapper:
             #timezone
             if int(self.exchange.version.majorversion) >= 14:
                 itemfield = Element('t:SetItemField')
-                itemfield.append(Element('t:FieldURI'))  
+                itemfield.append(Element('t:FieldURI'))
                 itemfield.children[0].set('FieldURI', 'calendar:StartTimeZone')
                 itemfield.append(Element('t:CalendarItem'))
                 startTZ = Element('t:StartTimeZone')
                 startTZ.set('Id', self.exchange.TimeZoneId)
                 itemfield.children[1].append(startTZ)
-                updates.append(itemfield)   
+                updates.append(itemfield)
                 itemfield = Element('t:SetItemField')
-                itemfield.append(Element('t:FieldURI'))  
+                itemfield.append(Element('t:FieldURI'))
                 itemfield.children[0].set('FieldURI', 'calendar:EndTimeZone')
                 itemfield.append(Element('t:CalendarItem'))
                 endTZ = Element('t:EndTimeZone')
                 endTZ.set('Id', self.exchange.TimeZoneId)
                 itemfield.children[1].append(endTZ)
-                updates.append(itemfield)                 
+                updates.append(itemfield)
             else:
                 itemfield = Element('t:SetItemField')
-                itemfield.append(Element('t:FieldURI'))  
-                itemfield.children[0].set('FieldURI', 'calendar:MeetingTimeZone')                
+                itemfield.append(Element('t:FieldURI'))
+                itemfield.children[0].set('FieldURI', 'calendar:MeetingTimeZone')
                 timeZone = Element('t:MeetingTimeZone')
                 timeZone.set('TimeZoneName', self.exchange.TimeZoneName)
                 timeZone.append(Element('t:BaseOffset').setText(self.exchange.BaseOffset))
@@ -710,10 +710,10 @@ class EWSWrapper:
                 daylight = Element('t:Daylight')
                 daylight.append(Element('t:Offset').setText(self.exchange.Offset))
                 daylight.append(Element('t:Time').setText(self.exchange.DaylightTime))
-                timeZone.append(daylight)            
+                timeZone.append(daylight)
                 itemfield.children[1].append(timeZone)
                 updates.append(itemfield)
-                
+
             itemchange.append(updates)
             itemchanges.append(itemchange)
             updateitem.append(itemchanges)
@@ -748,7 +748,7 @@ class EWSWrapper:
                 item = msg.Items.CalendarItem.ItemId
                 idlist.append((item._Id, item._ChangeKey))
 
-            return idlist  	    
+            return idlist
 
 
         def deleteCalendarEvent(self, ids):
@@ -756,9 +756,9 @@ class EWSWrapper:
             // Delete Calendar Event Items
             //======================================
             /* @param array $ids	  	- array of event ids to delete
-             * 
+             *
              * @return object response
-             */	    
+             */
             '''
             return self.deleteItems(ids)
 
@@ -778,7 +778,7 @@ class EWSWrapper:
              * @param string $sensitivity	- task sensitivity
              * @param string $bodytype	- task body type (TEXT/HTML)
              * @param string $category	- task category
-             * 
+             *
              * @return object response
              */
              '''
@@ -816,13 +816,13 @@ class EWSWrapper:
             if body:
                 Body = Element('t:Body')
                 Body.set('BodyType', getattr(self.types.EWSType_BodyTypeResponseType, bodyType))
-                task.append(Body.setText(body))	
+                task.append(Body.setText(body))
             task.append(cats)
-            task.append(Importance.setText(getattr(self.types.EWSType_ImportanceChoicesType,importance)))	    
+            task.append(Importance.setText(getattr(self.types.EWSType_ImportanceChoicesType,importance)))
             if(reminderdue):
                 task.append(ReminderDueBy.setText(reminderdue.ewsformat()))
-                task.append(ReminderIsSet.setText(1))		
-                task.append(ReminderMinutesBeforeStart.setText(reminderStart))	    
+                task.append(ReminderIsSet.setText(1))
+                task.append(ReminderMinutesBeforeStart.setText(reminderStart))
             task.append(DueDate.setText(due.ewsformat()))
 
 
@@ -861,12 +861,12 @@ class EWSWrapper:
                 item = msg.Items.Task.ItemId
                 idlist.append((item._Id, item._ChangeKey))
 
-            return idlist     	
+            return idlist
 
 
         def editTask(self, id, ckey, subject=None, body=None, bodytype='TEXT', due=None, \
                      reminderdue=None, reminderStart=None, status=None, percentComplete=None, \
-                     sensitivity=None, importance=None, category=None):	    
+                     sensitivity=None, importance=None, category=None):
             '''======================================
             // Edit Task
             //======================================
@@ -874,7 +874,7 @@ class EWSWrapper:
              * @param string $ckey  	   - event change key
              * @param string $subject  	   - event subject
              * @param string $body     	   - task body
-             * @param string $bodytype	   - task body type (TEXT/HTML) 
+             * @param string $bodytype	   - task body type (TEXT/HTML)
              * @param int $due 		   - task due date timestamp
              * @param int $reminderdue	   - reminder due date timestamp
              * @param int $reminderStart   - realtive negative offset for reminder start in nimutes
@@ -883,7 +883,7 @@ class EWSWrapper:
              * @param string $sensitivity  - task sensitivity (enumarted in SensitivityChoicesType)
              * @param string $importance   - task importance (enumarted in ImportanceChoicesType)
              * @param string $category	   - task category
-             * 
+             *
              * @return object response
              */
             '''
@@ -893,7 +893,7 @@ class EWSWrapper:
                 'item:ReminderDueBy'	          : reminderdue.ewsformat() if reminderdue else None,
                 'item:ReminderMinutesBeforeStart' : reminderStart,
                 'item:ReminderIsSet'              : 1 if (reminderStart or reminderdue) else 0,
-                'item:Subject'                    : subject,	        
+                'item:Subject'                    : subject,
                 'task:Status'                     : getattr(self.types.EWSType_TaskStatusType, status) if status else None,
                 'item:Sensitivity'                : getattr(self.types.EWSType_SensitivityChoicesType, sensitivity) if sensitivity else None,
                 'item:Importance'                 : getattr(self.types.EWSType_ImportanceChoicesType, importance) if importance else None,
@@ -901,7 +901,7 @@ class EWSWrapper:
             }
 
             updateitem = Element('m:UpdateItem')
-            updateitem.set('SendMeetingInvitationsOrCancellations', self.types.EWSType_CalendarItemCreateOrDeleteOperationType.SEND_TO_ALL_AND_SAVE_COPY)	    
+            updateitem.set('SendMeetingInvitationsOrCancellations', self.types.EWSType_CalendarItemCreateOrDeleteOperationType.SEND_TO_ALL_AND_SAVE_COPY)
             updateitem.set('MessageDisposition', self.types.EWSType_MessageDispositionType.SAVEONLY)
             updateitem.set('ConflictResolution', self.types.EWSType_ConflictResolutionType.ALWAYSOVERWRITE)
 
@@ -931,7 +931,7 @@ class EWSWrapper:
                 itemfield.children[0].set('FieldURI', 'item:Categories')
                 itemfield.append(Element('t:Task'))
                 categories = Element('t:Categories')
-                categories.append(Element('t:String').setText(category))		
+                categories.append(Element('t:String').setText(category))
                 itemfield.children[1].append(categories)
                 updates.append(itemfield)
 
@@ -980,7 +980,7 @@ class EWSWrapper:
                 item = msg.Items.Task.ItemId
                 idlist.append((item._Id, item._ChangeKey))
 
-            return idlist  
+            return idlist
 
 
         def deleteTask(self, ids):
@@ -988,9 +988,9 @@ class EWSWrapper:
             // Delete Task Items
             //======================================
             /* @param array $ids	  	- array of taks ids to delete
-             * 
+             *
              * @return object response
-             */	    
+             */
             '''
             return self.deleteItems(ids)
 
@@ -1003,7 +1003,7 @@ class EWSWrapper:
             * @param string $onbehalf 	- "on behalf" seneder's email
             * @param int $start 	- event start timestamp
             * @param int $end		- event end time
-            * 
+            *
             * @return object response
             */
             '''
@@ -1016,9 +1016,9 @@ class EWSWrapper:
             // Delete Items
             //======================================
             /* @param array $ids - list of item ids to delete
-             * 
+             *
              * @return list of tuples (success[True|False], errormessage)
-             * 
+             *
              '''
 
             status = []
@@ -1034,7 +1034,7 @@ class EWSWrapper:
             itemids = Element('m:ItemIds')
             itemid = Element('t:ItemId')
 
-            # copy.deepcopy() is faster than having Element() inside the loop. 
+            # copy.deepcopy() is faster than having Element() inside the loop.
             for iid in ids:
                 i = deepcopy(itemid)
                 i.set('Id', iid)
@@ -1082,7 +1082,7 @@ class EWSWrapper:
         def listItems(self, type, id=None, start=None, end=None, on_behalf=None, shape='ID_ONLY', categories=[], additional=[]):
             '''======================================
             // List Items
-            // Note: currenttly only Taska are 
+            // Note: currenttly only Taska are
             // searcheble by category
             //======================================
             /* @param string type	- item type
@@ -1090,7 +1090,7 @@ class EWSWrapper:
             * @param string $onbehalf 	- "on behalf": item owner email
             * @param int $start 	- search start timestamp
             * @param int $end		- search end timestamp
-            * 
+            *
             * @return object response
             */
             '''
@@ -1117,7 +1117,7 @@ class EWSWrapper:
                     for single in id:
                         itemid = Element('t:ItemId')
                         itemid.set('Id', single)
-                        itemids.append(itemid)			
+                        itemids.append(itemid)
 
                 else:
                     itemid = Element('t:ItemId')
@@ -1160,7 +1160,7 @@ class EWSWrapper:
                         itemcats = item.Categories[0]
                         if set(categories).issubset(set(itemcats)):
                             items.append(item)
-                    return items			
+                    return items
                 else:
                     rspclass = msg._ResponseClass
                     rspcode = msg.ResponseCode
@@ -1218,9 +1218,9 @@ class EWSWrapper:
                 if(type == 'CALENDAR'):
                     if start or end:
                         calendarview = Element('m:CalendarView')
-                        if start:    
+                        if start:
                             calendarview.set('StartDate', start.ewsformat())
-                        if end:   
+                        if end:
                             calendarview.set('EndDate', end.ewsformat())
                         finditem.append(calendarview)
 
@@ -1251,7 +1251,7 @@ class EWSWrapper:
 
                     if rcount > 1:
                         res.append(restriction)
-                        finditem.append(res)	
+                        finditem.append(res)
                     else:
                         finditem.append(restriction)
 
@@ -1352,8 +1352,8 @@ class EWSWrapper:
             /* @param string type	- folder type (enumarted in DistinguishedFolderIdNameType)
              * @param string $onbehalf 	- "on behalf": item owner email
              * @param string $shape	- detail level (enumarted in DefaultShapeNamesType)
-             * @param string $depth	- list normal /include subfolders (enumarted in FolderQueryTraversalType)	     
-             * 
+             * @param string $depth	- list normal /include subfolders (enumarted in FolderQueryTraversalType)
+             *
              * @return object response
              */
             '''
@@ -1436,7 +1436,7 @@ class EWSWrapper:
                         if(include_change_key):
                             idlist.append((item._Id, item._ChangeKey))
                         else:
-                            idlist.append(item._Id)                    
+                            idlist.append(item._Id)
             else:
                 try:
                     for item in [i.ItemId for i in [j[1] for j in items]]:
@@ -1449,9 +1449,9 @@ class EWSWrapper:
                         if(include_change_key):
                             idlist.append((item._Id, item._ChangeKey))
                         else:
-                            idlist.append(item._Id)                        
+                            idlist.append(item._Id)
             return idlist
-        
+
         def synchFolder(self, type, on_behalf=None, num_to_synch=10, synch_state=None, shape='ID_ONLY', additional=[], ignored_items=None):
             '''======================================
             // Synch Folder - synchronizes given folder
@@ -1461,8 +1461,8 @@ class EWSWrapper:
              * @param int num_to_synch      - how many items to synch in one go (max 500)
              * @param string  synch_state   - current synch state, blank on initial synch
              * @param string $shape	    - detail level (enumarted in DefaultShapeNamesType)
-             * @param string $ignored_items - list of IDs of ignored items (currently not implemented)     
-             * 
+             * @param string $ignored_items - list of IDs of ignored items (currently not implemented)
+             *
              * @return object response
              */
             '''
@@ -1472,7 +1472,7 @@ class EWSWrapper:
             baseshape = Element('t:BaseShape').setText(getattr(self.types.EWSType_DefaultShapeNamesType, shape))
             itemshape.append(baseshape)
             synchfolder.append(itemshape)
-            
+
             distinguishedfolderid = Element('t:DistinguishedFolderId')
             distinguishedfolderid.set('Id', getattr(self.types.EWSType_DistinguishedFolderIdNameType, type))
             parentfolderids = Element('m:SyncFolderId')
@@ -1482,7 +1482,7 @@ class EWSWrapper:
             distinguishedfolderid.append(mailbox)
             parentfolderids.append(distinguishedfolderid)
             synchfolder.append(parentfolderids)
-            
+
             if synch_state is not None:
                 synchstate = Element('m:SyncState').setText(synch_state)
                 synchfolder.append(synchstate)
@@ -1490,12 +1490,12 @@ class EWSWrapper:
             if ignored_items:
                 #@TODO : add ignored items...
                 pass
-            
+
             numresults = Element('m:MaxChangesReturned').setText(num_to_synch)
             synchfolder.append(numresults)
-            
+
             xml = self.exchange.transport.wrap(synchfolder)
-            
+
             try:
                 result = self.client.service.SyncFolderItems(__inject={'msg':xml})
             except WebFault as e:
@@ -1530,7 +1530,7 @@ class EWSWrapper:
             ids              = []
             fullitems_add    = []
             fullitems_update = []
-            
+
             #add/update events
             if hasattr(changes, 'Create'):
                 if isinstance(changes.Create[0], list):
@@ -1543,37 +1543,37 @@ class EWSWrapper:
                         fullitems.append(elem[0])
                 else:
                     for elem in __fullitems:
-                        fullitems.append(elem[1])  
+                        fullitems.append(elem[1])
                 #get ids from response
                 ids.extend(self.getids(fullitems, False))
                 fullitems_add = fullitems
                 fullitems = []
                 __fullitems = []
-            
+
             if hasattr(changes, 'Update'):
                 if isinstance(changes.Update[0], list):
                     __fullitems.extend(changes.Update[0])
                 else:
-                    __fullitems.extend(changes.Update)                
+                    __fullitems.extend(changes.Update)
                  #fix attributes
                 if len(__fullitems) > 1:
                     for elem in __fullitems:
                         fullitems.append(elem[0])
                 else:
                     for elem in __fullitems:
-                        fullitems.append(elem[1])  
+                        fullitems.append(elem[1])
                 #get ids from response
                 ids.extend(self.getids(fullitems, False))
                 fullitems_update = fullitems
                 fullitems = []
                 __fullitems = []
-                
+
             #if we have addtional proerties to fetch do so
 
             #join fulltimes toghether
             fullitems = fullitems_add + fullitems_update
-                                        
-            
+
+
             #call self with ids and required props
             if type=="CALENDAR":
                 if ids:
@@ -1617,16 +1617,16 @@ class EWSWrapper:
                         fullitems.Importance = extended_imp.get(fullitems.ItemId._Id)
                     if(len(fullitems) < 2):
                         fullitems =  [("EventSpoofedType",fullitems.pop())]
-            
+
             #allitems = type('', (object,), {})
             allitems = lambda:0
             allitems.addupdate = fullitems
             if hasattr(changes, 'Delete'):
                 if len(changes.Delete) < 2:
                     allitems.delete = [changes.Delete]
-                else:    
+                else:
                     allitems.delete = changes.Delete
-            return allitems            
+            return allitems
 
 
 class EWSDateTime(datetime):
@@ -1640,7 +1640,7 @@ class EWSDateTime(datetime):
         return self - timedelta(seconds=1)
 
     def __new__(cls, y=None, m=None, d=None, h=None, mi=None, s=None):
-        if((y>=0) and (all(x is None for x in (m,d,h,mi,s)))): 
+        if((y>=0) and (all(x is None for x in (m,d,h,mi,s)))):
             t = datetime.fromtimestamp(y)
             return super(EWSDateTime, cls).__new__(cls,t.year,t.month,t.day,t.hour,t.minute,t.second)
         else:
